@@ -48,5 +48,4 @@ export class CreatorController {
         return this.creatorService.patchUploadTitle(Number(id), data, title);
     }
 
-
 }
