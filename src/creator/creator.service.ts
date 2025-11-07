@@ -19,29 +19,37 @@ export class CreatorService {
         };
     }
 
-    upload(upload: UploadDTO) {
+    upload(upload: UploadDTO) : object {
         return { msg: "Upload created", upload };
     } 
 
 
-    getAllUploads() {
-        return {"msg": "All uploads"};
+    getAllUploads() :object {
+        return {msg: "All uploads"};
     }
 
-    getUploadById(id: number) {
+    getUploadById(id: number) :object {
         return { msg: "Upload ID: " + id };
     }
 
-    deleteUpload(id: number) {
+    deleteUpload(id: number) :object {
         return { msg: "Upload deleted with ID: " + id };
     }
 
-    replaceUpload(id: number, upload: UploadDTO) {
+    replaceUpload(id: number, upload: UploadDTO) :object {
         return { msg: "Upload replaced with ID: " + id, upload };
     }
 
-    patchUploadTitle(id: number, upload: UploadDTO, title: string) {
+    patchUploadTitle(id: number, upload: UploadDTO, title: string) :object {
         upload.title = title;
-        return { msg: "Upload title patched with Title: " + title };
+        upload.id = id;
+        return {
+            title: upload.title,
+            id: upload.id
+         };
     }
+
+  
+
+
 }

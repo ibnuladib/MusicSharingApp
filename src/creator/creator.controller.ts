@@ -9,43 +9,44 @@ export class CreatorController {
     constructor(private readonly creatorService: CreatorService) {}
 
     @Get("user")
-    getCreatorHello() {
+    getCreatorHello() : object {
         return this.creatorService.getCreator();
     }
 
     @Post("register")
-    registerCreator(@Body() data: CreatorDTO) {
+    registerCreator(@Body() data: CreatorDTO) : object {
         return this.creatorService.registerCreator(data);
     }
 
     @Post("upload")
-    upload(@Body() data: UploadDTO) {
+    upload(@Body() data: UploadDTO) : object {
         return this.creatorService.upload(data);
     }
 
     @Get("uploads")
-    getAllUploads() {
+    getAllUploads() :object {
         return this.creatorService.getAllUploads();
     }
 
     @Get("uploads/:id")
-    getUpload(@Param("id") id: string) {
-        return this.creatorService.getUploadById(Number(id));
+    getUpload(@Param("id") id: number) : object{
+        return this.creatorService.getUploadById(id);
     }
 
     @Delete("uploads/:id")
-    deleteUpload(@Param("id") id: string) {
-        return this.creatorService.deleteUpload(Number(id));
+    deleteUpload(@Param("id") id: number) :object {
+        return this.creatorService.deleteUpload(id);
     }
 
     @Put("uploads/:id")
-    replaceUpload(@Param("id") id: string, @Body() data: UploadDTO) {
-        return this.creatorService.replaceUpload(Number(id), data);
+    replaceUpload(@Param("id") id: number, @Body() data: UploadDTO) :object{
+        return this.creatorService.replaceUpload(id, data);
     }
 
-    @Patch("uploads/:id/title")
-    patchUploadTitle(@Param("id") id: string, @Body() data: UploadDTO, @Query("title") title: string) {
-        return this.creatorService.patchUploadTitle(Number(id), data, title);
+    @Patch("uploads/:id")
+    patchUploadTitle(@Param("id") id: number, @Body() data: UploadDTO, @Query("title") title: string) :object {
+        return this.creatorService.patchUploadTitle(id, data, title);
     }
+
 
 }
