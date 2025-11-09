@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Put, Query } from "@nestjs/common";
+import { Controller, Get, Post, Body, Patch, Param, Delete, Put, Query, UsePipes, ValidationPipe } from "@nestjs/common";
 import { CreatorDTO } from "./creator.dto";
 import { CreatorService } from "./creator.service";
 import { UploadDTO } from "./upload.dto";
@@ -14,6 +14,7 @@ export class CreatorController {
     }
 
     @Post("register")
+    @UsePipes(new ValidationPipe())
     registerCreator(@Body() data: CreatorDTO) : object {
         return this.creatorService.registerCreator(data);
     }

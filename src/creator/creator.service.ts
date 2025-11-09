@@ -14,8 +14,9 @@ export class CreatorService {
     registerCreator(mydata: CreatorDTO): object{
         return {
             name: mydata.name,
-            uname: mydata.uname,
-            password: mydata.password
+            uname: mydata.date,
+            password: mydata.password,
+            fbprofile: mydata.fbprofile
         };
     }
 
@@ -53,3 +54,10 @@ export class CreatorService {
 
 
 }
+
+
+// • Name field should not contain any numbers 
+// • Password field is required and it must contain one 
+// of the special character (@ or # or $ or &) 
+// • Validate a Date given is valid date type
+//  • Validate Social media links (URL format).
