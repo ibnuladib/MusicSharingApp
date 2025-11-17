@@ -1,6 +1,8 @@
-import { Body, Controller,Get, Post,Param ,Patch, Query,Put,Delete} from "@nestjs/common";
+import { Body, Controller,Get, Post,Param ,Patch, Query,Put,Delete,UseInterceptors, UploadedFile, UsePipes, ValidationPipe, BadRequestException} from "@nestjs/common";
 import { consumerService } from "./consumer.service";
 import { consumerDTO } from "./consumer.dto";
+import { FileInterceptor } from "@nestjs/platform-express";
+import { MulterError,diskStorage } from "multer";
 
 @Controller("consumer")
 export class consumerController{
@@ -30,7 +32,7 @@ export class consumerController{
     }
 
     @Post("post")
-    createConsumer(@Body() mydata:consumerDTO): object{
+    createConsumer(@Body() mydata:consumerDTO): consumerDTO{
         // console.log(mydata.name);
         return this.consmrService.createConsumer(mydata)
     }
@@ -49,4 +51,32 @@ export class consumerController{
     deleteUpload(@Param("id") id: string) {
         return this.consmrService.deleteData(id)
     }
-}
+
+    @Post("validate")
+    @UsePipes(new ValidationPipe())
+    validatedData(@Body()validatedData:consumerDTO): object{
+        return this.consmrService.validated(validatedData)
+    }
+
+    @Post('upload')
+    @UseInterceptors(FileInterceptor('file',
+    { fileFilter: (req, file, cb) => {
+    if (file.originalname.match(/^.*\.(jpg|webp|png|jpeg)$/))
+    cb(null, true);
+    else {
+    // cb(new MulterError('LIMIT_UNEXPECTED_FILE', 'image'), false);
+    cb(new BadRequestException("File Size more than 2MB or is not an image"),false)
+    }
+    },
+    limits: { fileSize: 2*1024*1024 },
+    storage:diskStorage({
+    destination: './uploads',
+    filename: function (req, file, cb) {
+    cb(null,Date.now()+file.originalname)
+    },
+    })
+    }))
+    uploadFile(@UploadedFile() file: Express.Multer.File) {
+    console.log(file);
+    }
+    }

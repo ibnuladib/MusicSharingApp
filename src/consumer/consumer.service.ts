@@ -1,4 +1,5 @@
 import { Injectable } from "@nestjs/common"
+import { consumerDTO } from "./consumer.dto"
 
 @Injectable()
 export class consumerService{
@@ -10,7 +11,7 @@ export class consumerService{
         return `Your ID is ${id}`
     }
 
-    createConsumer(mydata):object{
+    createConsumer(mydata):consumerDTO{
         return mydata
     }
 
@@ -20,7 +21,7 @@ export class consumerService{
 
     updateDTO(updateData:object):object{
         // return `Updated DTO:\n ${updateData.}`
-        return updateData
+        return {msg:"Updated Data:",updateData}
     }
 
     deleteData(id:string): string{
@@ -31,6 +32,14 @@ export class consumerService{
         return `You're name is: ${name}`
     }
     
+    validated(validatedData:consumerDTO):object{
+        return {
+            "name": validatedData.name,
+            "email": validatedData.email,
+            //"password": validatedData.password,
+            "NID": validatedData.NID
+        }
+    }
 
 }
 
