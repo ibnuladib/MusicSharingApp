@@ -3,6 +3,7 @@ import { consumerService } from "./consumer.service";
 import { consumerDTO } from "./consumer.dto";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { MulterError,diskStorage } from "multer";
+import { consumerEntity } from "./consumer.entity";
 
 @Controller("consumer")
 export class consumerController{
@@ -79,4 +80,67 @@ export class consumerController{
     uploadFile(@UploadedFile() file: Express.Multer.File) {
     console.log(file);
     }
+
+    //DB
+
+    @Post("dbcreatequery")
+    dbCreateConsumerQuery(
+    @Query("fullName") fullName: string,
+    @Query("age") age: string,
+    @Query("status") status: "active"|"inactive"
+) {
+
+    const newConsumer = {
+        fullName,
+        age: Number(age),
+        status
+    } as consumerEntity
+
+    return this.consmrService.dbCreateConsumer(newConsumer);
+}
+
+
+    @Post('dbentry')
+    dbCreateConsumer(@Body() mydbdata : consumerEntity){
+        return this.consmrService.dbCreateConsumer(mydbdata)
+
     }
+
+    @Get('dbshow')
+    dbGetUsers(){
+        return this.consmrService.dbGetUsers()
+    }
+
+    @Get('dbshowID/:id')
+    dbGetUserById(@Param("id")id:number){
+        return this.consmrService.dbGetUserById(id)
+    }
+
+    @Get('dbshowID')
+    dbGetUserByIdQuery(@Query()qry:any){
+        return this.consmrService.dbGetUserByIdQuery(qry)
+    }
+
+    @Put("dbupdate/:id")
+    dbUpdateUser(@Param("id")myid:number,@Body() updatedInfo : consumerEntity){
+        return this.consmrService.dbUpdateUser(myid,updatedInfo)
+    }
+
+    @Delete("dbdelete/:id")
+    dbDeleteUser(@Param("id") id:number){
+        return this.consmrService.dbDeleteUser(id)
+    }
+
+    @Get("dbinactive")
+    dbInactive(){
+        return this.consmrService.dbInactive()
+    }
+
+    @Get("dbolder")
+    dbOlder(){
+        return this.consmrService.dbOlder()
+    }
+
+
+    }
+
