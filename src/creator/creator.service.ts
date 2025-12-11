@@ -1,112 +1,154 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { HttpException, HttpStatus, Injectable, NotFoundException } from "@nestjs/common";
 import { CreatorDTO } from "./creator.dto";
-import { UploadDTO } from "./upload.dto";
+import { UploadDTO } from "./upload/upload.dto";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Creator } from "./creator.entity";
-import { IsNull, Repository } from "typeorm";
+import { In, IsNull, Repository } from "typeorm";
+import { Genre } from "./genre/genre.entity";
+import * as bcrypt from 'bcrypt';
+import { Upload } from "./upload/upload.entity";
+import { LoginDTO } from "./login.dto";
+import { MailerService } from "@nestjs-modules/mailer";
 
 
 @Injectable()
 export class CreatorService {
-    constructor(@InjectRepository(Creator) private creatorRepository: Repository<Creator>) {}
+    constructor(
+    @InjectRepository(Creator)
+    private creatorRepository: Repository<Creator>,
+    @InjectRepository(Genre)
+    private genreRepository: Repository<Genre>,
+    @InjectRepository(Upload)
+    private uploadRepository: Repository<Upload>,
+    private mailerService: MailerService
+    ){}
+    async create(dto: CreatorDTO): Promise<Creator> {
+        const genre = await this.genreRepository.find({
+            where: {
+                id: In(dto.genreIds)
+            }
+        });
 
+        if (genre.length !== dto.genreIds.length){
+            throw new HttpException(
+                "Genre does not exist.",
+                HttpStatus.BAD_REQUEST
+            );
+        }
 
-    async create(creator : Creator): Promise<Creator> {
+        const salt = await bcrypt.genSalt();
+        const hashPassword = await bcrypt.hash(dto.password, salt);
+
+            const creator = this.creatorRepository.create({
+                fullName: dto.name,
+                email: dto.email,
+                password: hashPassword,
+                genres: genre,
+                birthyear: dto.birthyear
+            })
+
+        if(!creator){
+            throw new HttpException("Sign up failed",HttpStatus.BAD_REQUEST)
+        }
+
+        await this.mailerService.sendMail({
+            to: dto.email,
+            subject: "Welcome",
+            text: "Dear Creator, Welcome to the APP",
+        });
+
         return await this.creatorRepository.save(creator);
     }
 
-    async updatePhone(phone: number, id: string): Promise<Creator> {
-        const creator = await this.creatorRepository.findOneBy(
-            {id}
-        );
-        if(creator==null){
-            throw new NotFoundException(`Creator with ID: ${id} doesnt exist`)
-        }
-        else{
-            creator.phone = phone;
-            await this.creatorRepository.save(creator);
-            return creator;
-        }
+    async validateCreator(dto: LoginDTO){
 
+        const creator = await this.creatorRepository.findOne({
+            where:{
+                email: dto.email
+            },
+        });
+
+        if (!creator) return null;
+        const isMatch = await bcrypt.compare(dto.password, creator.password);
+        return isMatch ? creator : null;
+    }
+    
+    async updateCreator(creatorId: number, dto: CreatorDTO) {
+        const creator = await this.creatorRepository.findOne({ where: { id: creatorId } });
+        
+        if (!creator) throw new HttpException("Creator not found", HttpStatus.NOT_FOUND);
+        if (dto.name) creator.fullName = dto.name;
+        if (dto.email) creator.email = dto.email;
+        if (dto.password) {
+            const salt = await bcrypt.genSalt();
+            creator.password = await bcrypt.hash(dto.password, salt);
+        }
     }
 
-    async findNull(): Promise<Creator[]>{
-        return await this.creatorRepository.find(
-            {
-                where: {fullName: IsNull()},
+    async logout(){
+        return { message: "Logged out"}
+    }
+
+    async addUpload(dto: UploadDTO, creatorId: number): Promise<Upload>{
+        const creator = await this.findOneById(creatorId);
+        if (!creator) throw new NotFoundException('Creator not found');
+
+        const upload = this.uploadRepository.create({
+            ...dto,
+            creator,
+        });
+        return this.uploadRepository.save(upload);
+    }
+
+    async getAllUpload(creatorId: number): Promise<Upload[]>{
+        return await this.uploadRepository.find({
+            where : { creator: {id:creatorId}},
+        });
+    }
+
+
+    async getCreator(id: number){
+            const creator =  await this.uploadRepository.find({
+                where : { creator: {id:id}},
+                relations: ["creators"]
+            });
+
+            return 
+    }
+
+    async patchUploadTitle(id: number,uploadTitle: string): Promise<Upload>{
+        let upload = await this.uploadRepository.findOne({
+            where: {id: id,}
+        });
+
+        if(!upload) throw new NotFoundException("Upload not found");
+
+        upload.title = uploadTitle;
+
+        return await this.uploadRepository.save(upload);
+    }
+
+    async deleteUpload(id: number){
+        const upload = await this.uploadRepository.findOne({
+            where:{
+                id
             }
-        );
+        });
+
+        if(!upload) throw new NotFoundException("Upload not found");
+
+        return this.uploadRepository.remove(upload);
     }
 
-    async deleteCreator(id: string): Promise<void> {
-        await this.creatorRepository.delete(id);
+    async findOne(loginData: LoginDTO): Promise<Creator | null> {
+            return this.creatorRepository.findOne({
+            where: { email: loginData.email },
+    });
+    }
+
+    async findOneById(id: number): Promise<Creator | null> {
+            return this.creatorRepository.findOneBy({id});
     }
 }
      
 
-
-
-
-
-
-
-
-
-    // registerCreator(mydata: CreatorDTO): object{
-    //     return {
-    //         fullname: mydata.fullName,
-    //         phone: mydata.phone,
-    //     };
-    // }
-
-    // upload(upload: UploadDTO) : object {
-    //     return { msg: "Upload created", upload };
-    // } 
-
-
-    // getAllUploads() :object {
-    //     return {msg: "All uploads"};
-    // }
-
-    // getUploadById(id: number) :object {
-    //     return { msg: "Upload ID: " + id };
-    // }
-
-    // deleteUpload(id: number) :object {
-    //     return { msg: "Upload deleted with ID: " + id };
-    // }
-
-    // replaceUpload(id: number, upload: UploadDTO) :object {
-    //     return { msg: "Upload replaced with ID: " + id, upload };
-    // }
-
-    // patchUploadTitle(id: number, upload: UploadDTO, title: string) :object {
-    //     upload.title = title;
-    //     upload.id = id;
-    //     return {
-    //         title: upload.title,
-    //         id: upload.id
-    //      };
-    // }
-
-
-
-
-// • Name field should not contain any numbers 
-// • Password field is required and it must contain one 
-// of the special character (@ or # or $ or &) 
-// • Validate a Date given is valid date type
-//  • Validate Social media links (URL format).
-
-
-// User Category 2:
-// Schema Criteria:
-// - Id: generateId(): use @BeforeInsert for custom logic before insertion.
-// - isActive: A boolean column default value to true.
-// - fullName: A Nullable varchar column.
-// - phone: type bigint that is unsigned.
-// Operation:
-// - Create a user
-// - Modify the phone number of an existing user.
-// - Retrieve users with null values in the full name column.
-// - Remove a user from the system based on their id.

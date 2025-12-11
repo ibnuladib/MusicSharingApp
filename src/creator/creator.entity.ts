@@ -1,24 +1,31 @@
-import { BeforeInsert, Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { BeforeInsert, Column, Entity, JoinTable, ManyToMany, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Upload } from "./upload/upload.entity";
+import { Genre } from "./genre/genre.entity";
 
 
 @Entity()
 export class Creator{
 
     @PrimaryGeneratedColumn()
-    id :string;
+    id :number;
 
     @Column()
-    isActive: boolean;
+    fullName: string;
 
-    @Column({type: 'varchar', nullable: true})
-    fullName: string | null;
+    @Column({ unique: true})
+    email : string;
 
-    @Column({type: 'bigint', unsigned: true})
-    phone: number;
+    @Column()
+    password: string;
 
+    @Column()
+    birthyear: number;
 
-    @BeforeInsert()
-    ActiveTrue(){
-        this.isActive = true;
-    }
+    @OneToMany(()=>Upload, upload => upload.creator)
+    uploads: Upload[];
+
+    @ManyToMany(()=>Genre,genre => genre.creators, {cascade: true})
+    @JoinTable()
+    genres: Genre[];
+
 }

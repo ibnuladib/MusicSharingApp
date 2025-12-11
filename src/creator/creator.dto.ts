@@ -1,14 +1,20 @@
 import { Type } from "class-transformer";
-import { IsBoolean, IsDateString, IsNotEmpty, IsNumber, IsUrl, Matches } from "class-validator";
+import { IsArray, IsBoolean, IsDateString, IsIn, IsInt, IsNotEmpty, IsNumber, IsOptional, IsUrl, Matches } from "class-validator";
 
 export class CreatorDTO{
 
-    fullName : string;
+    name: string;
+    email: string;
+    password: string;
 
-    @Type(()=>Number)
-    @IsNotEmpty()
-    phone : number;
+    @IsArray()
+    @IsInt({ each: true })
+    @IsIn([1, 2, 3, 4, 5], { each: true })
+    genreIds: number[];
+
+    birthyear: number;
 }
+
 
 
 
