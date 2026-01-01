@@ -25,6 +25,7 @@ export class Upload{
     @ManyToOne(()=>Creator,creator => creator.uploads,{onDelete: 'CASCADE'})
     creator: Creator;
 
+
     @BeforeInsert()
     insertDate(){
         this.date = new Date();

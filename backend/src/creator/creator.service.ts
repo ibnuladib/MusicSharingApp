@@ -149,6 +149,28 @@ export class CreatorService {
     async findOneById(id: number): Promise<Creator | null> {
             return this.creatorRepository.findOneBy({id});
     }
+
+    async addUploadWithFile(
+        dto: UploadDTO,
+        creatorId: number,
+        file: Express.Multer.File,
+        ): Promise<Upload> {
+        const creator = await this.findOneById(creatorId);
+        if (!creator) throw new NotFoundException('Creator not found');
+
+        const upload = this.uploadRepository.create({
+            title: dto.title,
+            description: dto.description,
+            filePath: file.path,       // images/filename.jpg
+            fileType: file.mimetype,   // image/jpeg
+            creator,
+        });
+
+        return this.uploadRepository.save(upload);
+    }
+
+    
+
 }
      
 

@@ -8,6 +8,16 @@ import { Upload } from "./upload/upload.entity";
 import { AuthGuard } from "src/auth/auth.guard";
 import { Request } from '@nestjs/common';
 import { request } from "http";
+import {
+  UseInterceptors,
+  UploadedFile,
+} from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { extname } from 'path';
+
+
+
 
 @Controller('creator')
 export class CreatorController {
@@ -66,6 +76,33 @@ export class CreatorController {
             "message":"Profile Fetched",
             "email": email
         };
+    }
+
+    @Post(':id/upload')
+    @UseInterceptors(
+        FileInterceptor('file', {
+        storage: diskStorage({
+            destination: './images',
+            filename: (req, file, cb) => {
+            const uniqueName =
+                Date.now() + '-' + Math.round(Math.random() * 1e9);
+            cb(null, uniqueName + extname(file.originalname));
+            },
+        }),
+        fileFilter: (req, file, cb) => {
+            if (!file.mimetype.match(/\/(jpg|jpeg|png)$/)) {
+            return cb(new Error('Only image files allowed!'), false);
+            }
+            cb(null, true);
+        },
+        }),
+    )
+    async uploadFile(
+        @Param('id', ParseIntPipe) creatorId: number,
+        @Body() dto: UploadDTO,
+        @UploadedFile() file: Express.Multer.File,
+    ) {
+        return this.creatorService.addUploadWithFile(dto, creatorId, file);
     }
 
 }
