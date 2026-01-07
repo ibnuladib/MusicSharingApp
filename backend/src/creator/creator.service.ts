@@ -23,18 +23,18 @@ export class CreatorService {
     private mailerService: MailerService
     ){}
     async create(dto: CreatorDTO): Promise<Creator> {
-        const genre = await this.genreRepository.find({
-            where: {
-                id: In(dto.genreIds)
-            }
-        });
+        // const genre = await this.genreRepository.find({
+        //     where: {
+        //         id: In(dto.genreIds)
+        //     }
+        // });
 
-        if (genre.length !== dto.genreIds.length){
-            throw new HttpException(
-                "Genre does not exist.",
-                HttpStatus.BAD_REQUEST
-            );
-        }
+        // if (genre.length !== dto.genreIds.length){
+        //     throw new HttpException(
+        //         "Genre does not exist.",
+        //         HttpStatus.BAD_REQUEST
+        //     );
+        // }
 
         const salt = await bcrypt.genSalt();
         const hashPassword = await bcrypt.hash(dto.password, salt);
@@ -43,7 +43,7 @@ export class CreatorService {
                 fullName: dto.name,
                 email: dto.email,
                 password: hashPassword,
-                genres: genre,
+                //genres: genre,
                 birthyear: dto.birthyear
             })
 
@@ -168,6 +168,21 @@ export class CreatorService {
 
         return this.uploadRepository.save(upload);
     }
+
+    
+    async getUploadById(id: number): Promise<Upload> {
+        const upload = await this.uploadRepository.findOne({
+            where: { id },
+            relations: ["creator"], 
+        });
+
+        if (!upload) {
+            throw new NotFoundException(`Upload with id ${id} not found`);
+        }
+
+        return upload;
+    }
+
 
     
 

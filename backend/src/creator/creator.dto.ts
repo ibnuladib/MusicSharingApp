@@ -1,4 +1,4 @@
-import { Type } from "class-transformer";
+import { Transform, Type } from "class-transformer";
 import { IsArray, IsBoolean, IsDateString, IsIn, IsInt, IsNotEmpty, IsNumber, IsOptional, IsUrl, Matches } from "class-validator";
 
 export class CreatorDTO{
@@ -6,10 +6,19 @@ export class CreatorDTO{
     name: string;
     email: string;
     password: string;
-    @IsArray()
-    @IsInt({ each: true })
-    @IsIn([1, 2, 3, 4, 5], { each: true })
-    genreIds: number[];
+
+//   @Transform(({ value }) => {
+//     // value could be string | string[]
+//     if (Array.isArray(value)) return value.map(Number);
+//     if (value == null) return [];
+//     return [Number(value)]; // wrap single value in array
+//   })
+//    @IsArray()
+//   @IsInt({ each: true })
+//   @IsIn([1, 2, 3, 4, 5], { each: true })
+ // genreIds: number[];
+
+    @Type(() => Number) 
     birthyear: number;
 }
 

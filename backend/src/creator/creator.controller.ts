@@ -27,10 +27,15 @@ export class CreatorController {
     ) {}
 
     @Post("register")
-    @UsePipes(new ValidationPipe())
+    @UsePipes(
+    new ValidationPipe({
+    }),
+    )
     register (@Body() dto: CreatorDTO) {
         return this.creatorService.create(dto) 
     }
+
+    
 
 
     @Put("/update/:id")
@@ -39,7 +44,7 @@ export class CreatorController {
         return this.creatorService.updateCreator(id,dto)
     }
 
-    @Post("upload/:id")
+    @Post("newupload/:id")
     @UsePipes(new ValidationPipe()) 
     addUpload(@Body() dto:UploadDTO, @Param(("id"), ParseIntPipe)id){
         return this.creatorService.addUpload(dto, id);
@@ -48,6 +53,11 @@ export class CreatorController {
     @Get("allupload/:creatorid")
     getAllUploads(@Param(("creatorid"), ParseIntPipe)id){
         return this.creatorService.getAllUpload(id)
+    }
+
+    @Get('getuploads/:id')
+    async getUpload(@Param('id', ParseIntPipe) id: number) {
+        return this.creatorService.getUploadById(id);
     }
 
     @Get("alluploads/:uploadid")
