@@ -1,0 +1,45 @@
+import { consumerDTO, loginDTO } from "./consumer.dto";
+import { consumerEntity } from "./consumer.entity";
+import { Repository } from "typeorm";
+import { consumerLikesEntity } from "./consumerLikes.entity";
+import { consumerCommentsEntity } from "./consumerComments.entity";
+export declare class consumerService {
+    private consumerRepository;
+    private consCommentRepo;
+    constructor(consumerRepository: Repository<consumerEntity>, consCommentRepo: Repository<consumerCommentsEntity>);
+    private likeRepo;
+    private commentRepo;
+    getConsumerService(): string;
+    getParam(id: any): string;
+    createConsumer(mydata: any): consumerDTO;
+    updateOne(id: string): string;
+    updateDTO(updateData: object): object;
+    deleteData(id: string): string;
+    getQuery(name: string): string;
+    validated(validatedData: consumerDTO): object;
+    dbCreateConsumer(newConsumer: consumerEntity): Promise<consumerEntity>;
+    dbGetUsers(): Promise<consumerEntity[]>;
+    dbGetUserById(myid: number): Promise<consumerEntity>;
+    dbGetUserByIdQuery(qry: any): Promise<consumerEntity>;
+    dbUpdateUser(myid: string, updatedUser: consumerEntity): Promise<consumerEntity | null>;
+    dbDeleteUser(myid: number): Promise<{
+        msg: string;
+    }>;
+    dbInactive(): Promise<consumerEntity[]>;
+    dbOlder(): Promise<consumerEntity[]>;
+    dbGetUserByName(usrname: string): Promise<consumerEntity[]>;
+    dbCreateLike(newLike: consumerLikesEntity): Promise<consumerLikesEntity>;
+    getAllLikes(): Promise<consumerLikesEntity[]>;
+    getLikeById(id: number): Promise<consumerLikesEntity>;
+    deleteLike(id: number): Promise<void>;
+    createComment(newComment: consumerCommentsEntity): Promise<consumerCommentsEntity>;
+    getAllComments(): Promise<consumerCommentsEntity[]>;
+    getCommentById(id: number): Promise<consumerCommentsEntity>;
+    deleteComment(id: number): Promise<void>;
+    findOne(logindata: loginDTO): Promise<any>;
+    dbUserFromComment(cmtid: number): Promise<consumerCommentsEntity>;
+    dbUserFromLike(likeid: number): Promise<consumerLikesEntity>;
+    dbLikeFromUser(userid: number): Promise<consumerLikesEntity>;
+    updateProfilePicture(id: number, filename: string): Promise<consumerEntity | null>;
+    dbCommentFromUser(userid: number): Promise<consumerEntity>;
+}
