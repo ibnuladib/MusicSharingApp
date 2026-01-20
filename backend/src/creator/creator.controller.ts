@@ -9,12 +9,13 @@ import { AuthGuard } from "src/auth/auth.guard";
 import { Request } from '@nestjs/common';
 import { request } from "http";
 import {
-  UseInterceptors,
-  UploadedFile,
+    UseInterceptors,
+    UploadedFile,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
+import { UpdateUploadDTO } from "./upload/update-upload.dto";
 
 
 
@@ -23,45 +24,58 @@ import { extname } from 'path';
 export class CreatorController {
     constructor(
         private readonly creatorService: CreatorService,
-        
-    ) {}
+
+    ) { }
 
     @Post("register")
     @UsePipes(
-    new ValidationPipe({
-    }),
+        new ValidationPipe({
+        }),
     )
-    register (@Body() dto: CreatorDTO) {
-        return this.creatorService.create(dto) 
+    register(@Body() dto: CreatorDTO) {
+        return this.creatorService.create(dto)
     }
 
-    
+    @UseGuards(AuthGuard)
+    @Get(':id/upload/:uploadId')
+    async getUpload(
+        @Param('id', ParseIntPipe) creatorId: number,
+        @Param('uploadId', ParseIntPipe) uploadId: number,
+    ) {
+        return this.creatorService.getUpload(creatorId, uploadId);
+    }
 
 
-    @Put("/update/:id")
+    @UseGuards(AuthGuard)
+    @Put(':id/update')
     @UsePipes(new ValidationPipe())
-    updateCreator(@Body() dto: CreatorDTO, @Param("id") id: number){
-        return this.creatorService.updateCreator(id,dto)
+    updateCreator(@Body() dto: CreatorDTO, @Param("id", ParseIntPipe) id: number) {
+        return this.creatorService.updateCreator(id, dto)
     }
 
-    @Post("newupload/:id")
-    @UsePipes(new ValidationPipe()) 
-    addUpload(@Body() dto:UploadDTO, @Param(("id"), ParseIntPipe)id){
-        return this.creatorService.addUpload(dto, id);
+    @UseGuards(AuthGuard)
+    @Get(':id/uploads')
+    async getAllUploads(@Param('id', ParseIntPipe) creatorId: number) {
+        return this.creatorService.getAllUploads(creatorId);
     }
+    // @Post("newupload/:id")
+    // @UsePipes(new ValidationPipe()) 
+    // addUpload(@Body() dto:UploadDTO, @Param(("id"), ParseIntPipe)id){
+    //     return this.creatorService.addUpload(dto, id);
+    // }
 
-    @Get("allupload/:creatorid")
-    getAllUploads(@Param(("creatorid"), ParseIntPipe)id){
-        return this.creatorService.getAllUpload(id)
-    }
+    // @Get("allupload/:creatorid")
+    // getAllUploads(@Param(("creatorid"), ParseIntPipe)id){
+    //     return this.creatorService.getAllUpload(id)
+    // }
 
-    @Get('getuploads/:id')
-    async getUpload(@Param('id', ParseIntPipe) id: number) {
-        return this.creatorService.getUploadById(id);
-    }
+    // @Get('getuploads/:id')
+    // async getUpload(@Param('id', ParseIntPipe) id: number) {
+    //     return this.creatorService.getUploadById(id);
+    // }
 
     @Get("alluploads/:uploadid")
-    getCreatorByUpload(@Param(("uploadid"), ParseIntPipe)id){
+    getCreatorByUpload(@Param(("uploadid"), ParseIntPipe) id) {
         return this.creatorService.getCreator(id)
     }
 
@@ -69,42 +83,44 @@ export class CreatorController {
     updateUploadTitle(
         @Query('uploadId', ParseIntPipe) uploadId: number,
         @Query("title") newTitle: string
-    ){
+    ) {
         return this.creatorService.patchUploadTitle(uploadId, newTitle);
     }
 
-    @Delete("upload/:id")
-    deleteUpload(@Param(("id"), ParseIntPipe)id: number){
-        return this.creatorService.deleteUpload(id);
+    @UseGuards(AuthGuard)
+    @Delete(':id/upload/:uploadId')
+    async deleteUpload(
+        @Param('id', ParseIntPipe) creatorId: number,
+        @Param('uploadId', ParseIntPipe) uploadId: number,
+    ) {
+        return this.creatorService.deleteUpload(creatorId, uploadId);
     }
 
     @UseGuards(AuthGuard)
-    @Get('profile')
-    getProfile(@Req() req){
-        const email = req.user.email;
-        return {
-            "message":"Profile Fetched",
-            "email": email
-        };
+    @Get(':id/profile')
+    async getProfile(@Param('id', ParseIntPipe) creatorId: number) {
+        return this.creatorService.getCreatorProfile(creatorId);
     }
 
-    @Post(':id/upload')
+
+    @UseGuards(AuthGuard)
+    @Post(':id/createupload')
     @UseInterceptors(
         FileInterceptor('file', {
-        storage: diskStorage({
-            destination: './images',
-            filename: (req, file, cb) => {
-            const uniqueName =
-                Date.now() + '-' + Math.round(Math.random() * 1e9);
-            cb(null, uniqueName + extname(file.originalname));
+            storage: diskStorage({
+                destination: './images',
+                filename: (req, file, cb) => {
+                    const uniqueName =
+                        Date.now() + '-' + Math.round(Math.random() * 1e9);
+                    cb(null, uniqueName + extname(file.originalname));
+                },
+            }),
+            fileFilter: (req, file, cb) => {
+                if (!file.mimetype.match(/\/(jpg|jpeg|png)$/)) {
+                    return cb(new Error('Only image files allowed!'), false);
+                }
+                cb(null, true);
             },
-        }),
-        fileFilter: (req, file, cb) => {
-            if (!file.mimetype.match(/\/(jpg|jpeg|png)$/)) {
-            return cb(new Error('Only image files allowed!'), false);
-            }
-            cb(null, true);
-        },
         }),
     )
     async uploadFile(
@@ -113,6 +129,34 @@ export class CreatorController {
         @UploadedFile() file: Express.Multer.File,
     ) {
         return this.creatorService.addUploadWithFile(dto, creatorId, file);
+    }
+
+    @UseGuards(AuthGuard)
+    @Put(':id/upload/:uploadId')
+    @UseInterceptors(
+        FileInterceptor('file', {
+            storage: diskStorage({
+                destination: './images',
+                filename: (req, file, cb) => {
+                    const uniqueName = Date.now() + '-' + Math.round(Math.random() * 1e9);
+                    cb(null, uniqueName + extname(file.originalname));
+                },
+            }),
+            fileFilter: (req, file, cb) => {
+                if (!file.mimetype.match(/\/(jpg|jpeg|png)$/)) {
+                    return cb(new Error('Only image files allowed!'), false);
+                }
+                cb(null, true);
+            },
+        }),
+    )
+    async updateUpload(
+        @Param('id', ParseIntPipe) creatorId: number,
+        @Param('uploadId', ParseIntPipe) uploadId: number,
+        @Body() dto: UpdateUploadDTO,
+        @UploadedFile() file?: Express.Multer.File,
+    ) {
+        return this.creatorService.updateUpload(dto, creatorId, uploadId, file);
     }
 
 }

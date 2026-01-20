@@ -13,7 +13,7 @@ export class AuthService {
         private jwtService: JwtService
     ) {}
 
-    async signIn( logindata: LoginDTO) : Promise<{access_token: string}> {
+    async signIn( logindata: LoginDTO) : Promise<{access_token: string , creatorId: number}> {
         const creator = await this.creatorService.findOne(logindata);
         if(!creator) {
             throw new UnauthorizedException();
@@ -26,7 +26,8 @@ export class AuthService {
 
         const payload = logindata;
         return {
-            access_token: await this.jwtService.signAsync(payload, { secret: jwtConstants.secret })
+            access_token: await this.jwtService.signAsync(payload, { secret: jwtConstants.secret }),
+            creatorId: creator.id
         };
     }
 }
